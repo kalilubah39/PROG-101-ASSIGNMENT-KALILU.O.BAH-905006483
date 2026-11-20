@@ -1,0 +1,71 @@
+PROG101 — CHAPMS PSEUDOCODE
+Student: Kalilu.O.Bah | Student ID: 905006483
+
+PROCEDURE RegisterPatient
+    INPUT PatientName, Age, Phone
+    IF PatientName = "" OR Age < 0 THEN
+        OUTPUT "Registration incomplete. Check required details."
+        RETURN
+    ENDIF
+    ExistingPatient = FindPossibleDuplicate(PatientName, Age, Phone)
+    IF ExistingPatient = TRUE THEN
+        OUTPUT "Possible existing record. Verify before creating a new record."
+        RETURN
+    ENDIF
+    PatientID = GenerateUniquePatientID()
+    SAVE PatientID, PatientName, Age, Phone
+    OUTPUT "Registration successful. Patient number: ", PatientID
+END PROCEDURE
+
+PROCEDURE BookAppointment
+    INPUT PatientID, ServiceType, AppointmentDate, AppointmentTime
+    IF PatientExists(PatientID) = FALSE THEN
+        OUTPUT "Patient number not found."
+        RETURN
+    ENDIF
+    IF ServiceType = "" OR AppointmentDate = "" OR AppointmentTime = "" THEN
+        OUTPUT "Please complete all appointment fields."
+        RETURN
+    ENDIF
+    IF AppointmentDate < TODAY THEN
+        OUTPUT "Past dates cannot be booked."
+        RETURN
+    ENDIF
+    SlotAvailable = CheckSlot(PatientID, AppointmentDate, AppointmentTime)
+    CapacityAvailable = CheckDailyCapacity(AppointmentDate)
+    IF SlotAvailable = TRUE AND CapacityAvailable = TRUE THEN
+        BookingID = GenerateUniqueBookingID()
+        SAVE BookingID, PatientID, ServiceType, AppointmentDate, AppointmentTime, "CONFIRMED"
+        OUTPUT "Appointment confirmed. Booking reference: ", BookingID
+    ELSE
+        IF SlotAvailable = FALSE THEN
+            OUTPUT "This time slot is unavailable. Select another time."
+        ELSE
+            OUTPUT "Daily capacity reached. Select another date."
+        ENDIF
+    ENDIF
+END PROCEDURE
+
+PROCEDURE PrepareDailyReport
+    INPUT SelectedDate
+    AppointmentList = GetAppointments(SelectedDate)
+    Total = 0
+    Attended = 0
+    Missed = 0
+    Cancelled = 0
+    FOR EACH Appointment IN AppointmentList
+        OUTPUT Appointment.PatientID, Appointment.Time, Appointment.Status
+        Total = Total + 1
+        IF Appointment.Status = "ATTENDED" THEN
+            Attended = Attended + 1
+        ELSE IF Appointment.Status = "MISSED" THEN
+            Missed = Missed + 1
+        ELSE IF Appointment.Status = "CANCELLED" THEN
+            Cancelled = Cancelled + 1
+        ENDIF
+    ENDFOR
+    OUTPUT "Total appointments: ", Total
+    OUTPUT "Attended: ", Attended
+    OUTPUT "Missed: ", Missed
+    OUTPUT "Cancelled: ", Cancelled
+END PROCEDURE
